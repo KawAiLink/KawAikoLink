@@ -29,18 +29,18 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Road Map
 
--UI selection
--Auth, Middleware
--Base Features  
-    -Age Gate to protect minors 
-    -Friend/Date Search Mode    
-    -Interest based matching    
-    -E2E encrypted messaging    
-    -Verify User - tries to enforce "moderation"    
-    -Expiring Images    
+- UI selection
+- Auth, Middleware
+- Base Features  
+    - Age Gate to protect minors 
+    - Friend/Date Search Mode    
+    - Interest based matching    
+    - E2E encrypted messaging    
+    - Verify User - tries to enforce "moderation"    
+    - Expiring Images    
 
 
 ## Features that need funding
 
--Larger Database and Data buckets
--Sanity potion for developers, jk
+- Larger Database and Data buckets   
+- Sanity potion for developers, jk   
