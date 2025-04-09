@@ -31,13 +31,13 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 -UI selection
 -Auth, Middleware
--Base Features
-    -Age Gate to protect minors
-    -Friend/Date Search Mode
-    -Interest based matching
-    -E2E encrypted messaging
-    -Verify User - tries to enforce "moderation"
-    -Expiring Images
+-Base Features  
+    -Age Gate to protect minors 
+    -Friend/Date Search Mode    
+    -Interest based matching    
+    -E2E encrypted messaging    
+    -Verify User - tries to enforce "moderation"    
+    -Expiring Images    
 
 
 ## Features that need funding
