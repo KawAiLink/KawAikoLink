@@ -28,3 +28,13 @@ body {
 .poppins{
   font-family: "Poppins";
 }
+
+@layer base{
+  input, textarea{
+    @apply bg-foreground/50 text-background py-2 px-4 rounded-sm;
+  }
+
+  form div{
+    @apply flex flex-col
+  }
+}

@@ -1,0 +1,59 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  mobileNumber String
+  username     String       @unique
+  bio          String?
+  dateOfBirth  DateTime
+  avatarUrl    String?
+  hobbies      String[]
+  country      String
+  secretKey    String       @unique
+  password     String
+  salt         String
+  createdAt    DateTime     @default(now())
+  preferences  Preferences? @relation
+}
+
+model Preferences {
+  id                Int                @id @default(autoincrement())
+  user              User               @relation(fields: [userId], references: [id])
+  userId            Int                @unique
+  mode              Mode?
+  femboy            FemboyRole
+  sexualOrientation SexualOrientation?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+enum Mode {
+  FRIEND_MODE
+  DATE_MODE
+}
+
+enum FemboyRole {
+  IS_ONE
+  INTERESTED_IN
+  BOTH
+}
+
+enum SexualOrientation {
+  STRAIGHT
+  GAY
+  BISEXUAL
+  PANSEXUAL
+  ASEXUAL
+  OTHER
+}
