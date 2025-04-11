@@ -16,7 +16,8 @@ export async function PUT(req) {
         const userId = session.user.id;
 
         // Parse the request body
-        const { bio, avatarUrl, hobbies, mode, femboy, sexualOrientation } = await req.json();
+        const { bio, avatarUrl, hobbies, mode, femboy, sexualOrientation, dateEnabled } =
+            await req.json();
 
         // Update the user's data in the database
         const updatedUser = await prisma.user.update({
@@ -25,6 +26,7 @@ export async function PUT(req) {
                 bio,
                 avatarUrl,
                 hobbies,
+                dateEnabled, // Add dateEnabled to the update
                 preferences: {
                     upsert: {
                         create: { mode, femboy, sexualOrientation },
@@ -51,6 +53,7 @@ export async function PUT(req) {
                     bio: updatedUser.bio,
                     avatarUrl: updatedUser.avatarUrl,
                     hobbies: updatedUser.hobbies,
+                    dateEnabled: updatedUser.dateEnabled,
                     mode: updatedUser.preferences.mode,
                     femboy: updatedUser.preferences.femboy,
                     sexualOrientation: updatedUser.preferences.sexualOrientation,

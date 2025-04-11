@@ -7,6 +7,8 @@ export default function Account() {
     // Fetch the session data
     const { data: session } = useSession();
     const age = calculateAge(session?.user?.dateOfBirth);
+    console.log("Session Data:", session); // Inspect the session object
+
 
     return (
         <>
@@ -24,6 +26,14 @@ export default function Account() {
                 <p><strong>Hobbies:</strong> {session?.user?.hobbies?.join(", ") || "Not provided"}</p>
                 <p><strong>Femboy Role:</strong> {session?.user?.femboy || "Not provided"}</p>
                 <p><strong>Sexual Orientation:</strong> {session?.user?.sexualOrientation || "Not provided"}</p>
+                <p>
+  <strong>Access to Date Mode:</strong>{" "}
+  {session?.user?.dateEnabled !== undefined
+    ? session.user.dateEnabled.toString()
+    : "Not provided"}
+</p>
+
+
             </div>
 
             <button onClick={() => signOut()}>Logout</button>

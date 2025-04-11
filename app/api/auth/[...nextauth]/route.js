@@ -20,7 +20,7 @@ export const authOptions = {
                 const user = await prisma.user.findUnique({
                     where: { email: credentials.email },
                     include: {
-                        preferences: true, // Include preferences in the query
+                        preferences: true,
                     },
                 });
 
@@ -28,16 +28,16 @@ export const authOptions = {
                     throw new Error("No user found with this email");
                 }
 
-                const [salt, storedHashedPassword] = user.password.split(":");
+                // Verify the password using the salt
                 const hashedInput = crypto.pbkdf2Sync(
                     credentials.password,
-                    salt,
+                    user.salt, // Use the salt stored in the database
                     100000,
                     64,
                     "sha512"
                 ).toString("hex");
 
-                if (hashedInput !== storedHashedPassword) {
+                if (hashedInput !== user.password) {
                     throw new Error("Invalid password");
                 }
 
@@ -48,11 +48,12 @@ export const authOptions = {
                     mobileNumber: user.mobileNumber,
                     country: user.country,
                     dateOfBirth: user.dateOfBirth,
-                    bio: user.bio, // Add bio
-                    avatarUrl: user.avatarUrl, // Add avatarUrl
-                    hobbies: user.hobbies, // Add hobbies
-                    femboy: user.preferences?.femboy, // Add femboy
-                    sexualOrientation: user.preferences?.sexualOrientation, // Add sexualOrientation
+                    bio: user.bio,
+                    avatarUrl: user.avatarUrl,
+                    hobbies: user.hobbies,
+                    femboy: user.preferences?.femboy,
+                    sexualOrientation: user.preferences?.sexualOrientation,
+                    dateEnabled: user.dateEnabled,
                 };
             },
         }),
@@ -66,11 +67,12 @@ export const authOptions = {
                 token.mobileNumber = user.mobileNumber;
                 token.country = user.country;
                 token.dateOfBirth = user.dateOfBirth;
-                token.bio = user.bio; // Add bio
-                token.avatarUrl = user.avatarUrl; // Add avatarUrl
-                token.hobbies = user.hobbies; // Add hobbies
-                token.femboy = user.femboy; // Add femboy
-                token.sexualOrientation = user.sexualOrientation; // Add sexualOrientation
+                token.bio = user.bio;
+                token.avatarUrl = user.avatarUrl;
+                token.hobbies = user.hobbies;
+                token.femboy = user.femboy;
+                token.sexualOrientation = user.sexualOrientation;
+                token.dateEnabled = user.dateEnabled;
             }
             return token;
         },
@@ -83,11 +85,12 @@ export const authOptions = {
                 country: token.country,
                 dateOfBirth: token.dateOfBirth,
                 age: token.dateOfBirth ? calculateAge(token.dateOfBirth) : null,
-                bio: token.bio, // Add bio
-                avatarUrl: token.avatarUrl, // Add avatarUrl
-                hobbies: token.hobbies, // Add hobbies
-                femboy: token.femboy, // Add femboy
-                sexualOrientation: token.sexualOrientation, // Add sexualOrientation
+                bio: token.bio,
+                avatarUrl: token.avatarUrl,
+                hobbies: token.hobbies,
+                femboy: token.femboy,
+                sexualOrientation: token.sexualOrientation,
+                dateEnabled: token.dateEnabled,
             };
 
             if (!session.user.preferences) {
