@@ -31,7 +31,7 @@ model Preferences {
   id                Int                @id @default(autoincrement())
   user              User               @relation(fields: [userId], references: [id])
   userId            Int                @unique
-  mode              Mode?
+  mode              Mode               @default(FRIEND_MODE)
   femboy            FemboyRole
   sexualOrientation SexualOrientation?
   createdAt         DateTime           @default(now())

@@ -12,6 +12,7 @@
   "dependencies": {
     "@prisma/client": "^6.6.0",
     "crypto": "^1.0.1",
+    "firebase": "^11.6.0",
     "libphonenumber-js": "^1.12.6",
     "next": "15.3.0",
     "next-auth": "^4.24.11",

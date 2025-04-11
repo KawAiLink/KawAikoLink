@@ -47,6 +47,7 @@ export default function PhoneInputWithCountry({ mobileNumber, setMobileNumber })
                     console.log("✍️ Phone changed to:", value);
                     setMobileNumber(value || "");
                 }}
+                className="flex-row"
             />
             {mobileNumber?.length > 3 && !isValidPhoneNumber(mobileNumber) && (
                 <p style={{ color: "red" }}>Invalid phone number format.</p>

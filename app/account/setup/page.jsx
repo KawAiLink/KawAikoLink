@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function Setup() {
@@ -124,6 +124,7 @@ export default function Setup() {
 
                 {/* Submit Button */}
                 <button type="submit">Save Preferences</button>
+                <button type="button" onClick={() => signOut({ callbackUrl: "/auth/login" })} >Logout</button>
             </form>
         </main>
     );

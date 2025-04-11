@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { firebaseApp } from "@/lib/firebaseAuth";
 import PhoneInputWithCountry from "@/components/PhoneInputWithCountry";
 import { isValidPhoneNumber } from "react-phone-number-input";
+import { calculateAge } from "@/utils/calculateAge";
 
 export default function Register() {
     const [email, setEmail] = useState("");
@@ -13,40 +16,59 @@ export default function Register() {
     const [country, setCountry] = useState("US");
     const [dateOfBirth, setDateOfBirth] = useState("");
     const [error, setError] = useState("");
+    const [verificationCode, setVerificationCode] = useState("");
+    const [confirmationResult, setConfirmationResult] = useState(null);
 
     const router = useRouter();
+    const auth = getAuth(firebaseApp);
 
-   
-    const calculateAge = (dob) => {
-        const today = new Date();
-        const birthDate = new Date(dob);
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDifference = today.getMonth() - birthDate.getMonth();
-        if (
-            monthDifference < 0 ||
-            (monthDifference === 0 && today.getDate() < birthDate.getDate())
-        ) {
-            age--;
+    // Create a ref for the reCAPTCHA container
+    const recaptchaContainerRef = useRef(null);
+
+    // Initialize reCAPTCHA verifier only once
+    useEffect(() => {
+        let recaptchaVerifier;
+
+        if (!recaptchaContainerRef.current) {
+            console.error("reCAPTCHA container not found in the DOM.");
+            return;
         }
-        return age;
-    };
+
+        // Check if reCAPTCHA verifier is already initialized
+        if (!window.recaptchaVerifier) {
+            recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
+                size: "normal",
+                callback: () => console.log("reCAPTCHA verified successfully"),
+                "expired-callback": () => console.log("reCAPTCHA expired"),
+            });
+
+            window.recaptchaVerifier = recaptchaVerifier; // Store globally for reuse
+        }
+
+        // Cleanup function to reset reCAPTCHA verifier on unmount
+        return () => {
+            if (recaptchaVerifier) {
+                recaptchaVerifier.clear(); // Clear the reCAPTCHA widget
+                delete window.recaptchaVerifier; // Remove global reference
+            }
+        };
+    }, []); // Empty dependency array ensures this runs only once
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-       
-        if (mobileNumber && mobileNumber.length > 3 && !isValidPhoneNumber(mobileNumber)) {
+        // Validate phone number
+        if (!isValidPhoneNumber(mobileNumber)) {
             setError("Please enter a valid phone number.");
             return;
         }
 
-       
+        // Validate date of birth
         if (!dateOfBirth) {
             setError("Date of birth is required.");
             return;
         }
 
-       
         const age = calculateAge(dateOfBirth);
         if (age < 13) {
             setError("You must be at least 13 years old to register.");
@@ -54,6 +76,35 @@ export default function Register() {
         }
 
         try {
+            // Ensure reCAPTCHA verifier is initialized
+            if (!window.recaptchaVerifier) {
+                setError("reCAPTCHA verifier not initialized.");
+                return;
+            }
+
+            // Send SMS verification code
+            const appVerifier = window.recaptchaVerifier;
+            const confirmation = await signInWithPhoneNumber(auth, mobileNumber, appVerifier);
+            setConfirmationResult(confirmation);
+        } catch (err) {
+            setError("Failed to send verification code. Please try again.");
+            console.error(err);
+        }
+    };
+
+    const handleVerifyCode = async (e) => {
+        e.preventDefault();
+
+        if (!verificationCode) {
+            setError("Please enter the verification code.");
+            return;
+        }
+
+        try {
+            // Confirm the verification code
+            await confirmationResult.confirm(verificationCode);
+
+            // Proceed with registration
             const res = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -64,7 +115,7 @@ export default function Register() {
                     password,
                     country,
                     dateOfBirth,
-                    age,
+                    age: calculateAge(dateOfBirth),
                 }),
             });
 
@@ -76,73 +127,92 @@ export default function Register() {
                 setError(data.message || "Registration failed. Please try again.");
             }
         } catch (err) {
-            setError("An error occurred. Please try again.");
+            setError("Invalid verification code. Please try again.");
+            console.error(err);
         }
     };
 
     return (
-        <>
-            <main>
-                <div>
-                    <h1>Register</h1>
-                    {error && <p style={{ color: "red" }}>{error}</p>}
-                    <form onSubmit={handleSubmit}>
+        <main>
+            <div>
+                <h1>Register</h1>
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                <form onSubmit={handleSubmit}>
+                    <div>
+                        <label>Email</label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label>Username</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label>Mobile Number</label>
+                        <PhoneInputWithCountry
+                            mobileNumber={mobileNumber}
+                            setMobileNumber={setMobileNumber}
+                        />
+                    </div>
+
+                    <div>
+                        <label>Date of Birth</label>
+                        <input
+                            type="date"
+                            value={dateOfBirth}
+                            onChange={(e) => setDateOfBirth(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label>Password</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    {/* reCAPTCHA container */}
+                    <div ref={recaptchaContainerRef}></div>
+
+                    <button
+                        type="submit"
+                        disabled={!mobileNumber || !isValidPhoneNumber(mobileNumber)}
+                    >
+                        Send Verification Code
+                    </button>
+                </form>
+
+                {confirmationResult && (
+                    <form onSubmit={handleVerifyCode}>
                         <div>
-                            <label>Email</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label>Username</label>
+                            <label>Verification Code</label>
                             <input
                                 type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                value={verificationCode}
+                                onChange={(e) => setVerificationCode(e.target.value)}
                                 required
                             />
                         </div>
-
-                        <div>
-                            <label>Mobile Number</label>
-                            <PhoneInputWithCountry
-                                mobileNumber={mobileNumber}
-                                setMobileNumber={setMobileNumber}
-                            />
-                        </div>
-
-                        <div>
-                            <label>Date of Birth</label>
-                            <input
-                                type="date"
-                                value={dateOfBirth}
-                                onChange={(e) => setDateOfBirth(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label>Password</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={!mobileNumber || (mobileNumber.length > 3 && !isValidPhoneNumber(mobileNumber))}
-                        >
-                            Register
-                        </button>
+                        <button type="submit">Verify Code</button>
                     </form>
-                    <a href="/auth/login">Already have an account? Login</a>
-                </div>
-            </main>
-        </>
+                )}
+
+                <a href="/auth/login">Already have an account? Login</a>
+            </div>
+        </main>
     );
 }
