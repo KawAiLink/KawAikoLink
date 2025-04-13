@@ -1,10 +1,11 @@
 import crypto from "crypto";
 import { parsePhoneNumberFromString, isValidPhoneNumber } from "libphonenumber-js";
 import prisma from "@/lib/prisma";
+import { RegisterRequestBody } from "@/types/register/bodyRequest";
 
-export async function POST(req) {
+export async function POST(req:Request): Promise<Response>    {
     try {
-        const { email, username, mobileNumber, password, dateOfBirth } = await req.json();
+        const { email, username, mobileNumber, password, dateOfBirth }: RegisterRequestBody = await req.json();
 
         // Validate required fields
         if (!email || !username || !mobileNumber || !password || !dateOfBirth) {

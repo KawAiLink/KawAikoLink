@@ -2,32 +2,33 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 import { firebaseApp } from "@/lib/firebaseAuth";
 import PhoneInputWithCountry from "@/components/PhoneInputWithCountry";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { calculateAge } from "@/utils/calculateAge";
+import { RegisterRequestBody } from "@/types/register/bodyRequest"; // Import the RegisterRequestBody interface
 
 export default function Register() {
-    const [email, setEmail] = useState("");
-    const [username, setUsername] = useState("");
-    const [mobileNumber, setMobileNumber] = useState("+1");
-    const [password, setPassword] = useState("");
-    const [country, setCountry] = useState("US");
-    const [dateOfBirth, setDateOfBirth] = useState("");
-    const [error, setError] = useState("");
-    const [verificationCode, setVerificationCode] = useState("");
-    const [confirmationResult, setConfirmationResult] = useState(null);
-
+    // State variables with proper types
+    const [email, setEmail] = useState<string>("");
+    const [username, setUsername] = useState<string>("");
+    const [mobileNumber, setMobileNumber] = useState<string>("+1");
+    const [password, setPassword] = useState<string>("");
+    const [country, setCountry] = useState<string>("US");
+    const [dateOfBirth, setDateOfBirth] = useState<string>("");
+    const [error, setError] = useState<string>("");
+    const [verificationCode, setVerificationCode] = useState<string>("");
+    const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
     const router = useRouter();
     const auth = getAuth(firebaseApp);
 
     // Create a ref for the reCAPTCHA container
-    const recaptchaContainerRef = useRef(null);
+    const recaptchaContainerRef = useRef<HTMLDivElement | null>(null);
 
     // Initialize reCAPTCHA verifier only once
     useEffect(() => {
-        let recaptchaVerifier;
+        let recaptchaVerifier: RecaptchaVerifier | undefined;
 
         if (!recaptchaContainerRef.current) {
             console.error("reCAPTCHA container not found in the DOM.");
@@ -36,11 +37,17 @@ export default function Register() {
 
         // Check if reCAPTCHA verifier is already initialized
         if (!window.recaptchaVerifier) {
-            recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
-                size: "normal",
-                callback: () => console.log("reCAPTCHA verified successfully"),
-                "expired-callback": () => console.log("reCAPTCHA expired"),
-            });
+            recaptchaVerifier = new RecaptchaVerifier(
+                auth,
+                recaptchaContainerRef.current,
+                {
+                    size: "normal",
+                    callback: () =>
+                        console.log("reCAPTCHA verified successfully"),
+                    "expired-callback": () =>
+                        console.log("reCAPTCHA expired"),
+                }
+            );
 
             window.recaptchaVerifier = recaptchaVerifier; // Store globally for reuse
         }
@@ -54,7 +61,8 @@ export default function Register() {
         };
     }, []); // Empty dependency array ensures this runs only once
 
-    const handleSubmit = async (e) => {
+    // Handle form submission
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         // Validate phone number
@@ -69,7 +77,7 @@ export default function Register() {
             return;
         }
 
-        const age = calculateAge(dateOfBirth);
+        const age = calculateAge(new Date(dateOfBirth));
         if (age < 13) {
             setError("You must be at least 13 years old to register.");
             return;
@@ -92,7 +100,8 @@ export default function Register() {
         }
     };
 
-    const handleVerifyCode = async (e) => {
+    // Handle verification code submission
+    const handleVerifyCode = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (!verificationCode) {
@@ -102,21 +111,26 @@ export default function Register() {
 
         try {
             // Confirm the verification code
+            if (!confirmationResult) {
+                throw new Error("Confirmation result is missing.");
+            }
+
             await confirmationResult.confirm(verificationCode);
+
+            // Prepare the request body
+            const requestBody: RegisterRequestBody = {
+                email,
+                username,
+                mobileNumber,
+                password,
+                dateOfBirth: new Date(dateOfBirth), // Convert string to Date
+            };
 
             // Proceed with registration
             const res = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email,
-                    username,
-                    mobileNumber,
-                    password,
-                    country,
-                    dateOfBirth,
-                    age: calculateAge(dateOfBirth),
-                }),
+                body: JSON.stringify(requestBody),
             });
 
             const data = await res.json();
