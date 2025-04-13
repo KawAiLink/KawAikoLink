@@ -27,11 +27,11 @@ export default function Account() {
                 <p><strong>Femboy Role:</strong> {session?.user?.femboy || "Not provided"}</p>
                 <p><strong>Sexual Orientation:</strong> {session?.user?.sexualOrientation || "Not provided"}</p>
                 <p>
-  <strong>Access to Date Mode:</strong>{" "}
-  {session?.user?.dateEnabled !== undefined
-    ? session.user.dateEnabled.toString()
-    : "Not provided"}
-</p>
+                    <strong>Access to Date Mode:</strong>{" "}
+                    {session?.user?.dateEnabled !== undefined
+                        ? session.user.dateEnabled.toString()
+                        : "Not provided"}
+                </p>
 
 
             </div>
