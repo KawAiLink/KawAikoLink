@@ -5,9 +5,9 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const router = useRouter();
   const searchParams = useSearchParams(); // Access query parameters
@@ -15,7 +15,7 @@ export default function Login() {
   // Extract the redirect query parameter
   const redirectPath = searchParams.get("redirect") || "/account"; // Default to "/" if no redirect is provided
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
@@ -25,7 +25,7 @@ export default function Login() {
         redirect: false, // Prevent automatic redirection
       });
 
-      if (res.error) {
+      if (res?.error) {
         setError("Invalid email or password");
       } else {
         // Redirect to the intended page or default to "/"
