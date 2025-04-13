@@ -1,6 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Road Map
+
+- UI selection
+- Auth, Middleware
+- Base Features  
+    - Age Gate to protect minors 
+    - Friend/Date Search Mode    
+    - Interest based matching    
+    - E2E encrypted messaging    
+    - Verify User - tries to enforce "moderation"    
+    - Expiring Images    
+
+
+## Features that need funding
+
+- Larger Database and Data buckets   
+- Sanity potion for developers, jk   
+
+
+## Contributors
+
+Pioneeered by [u/East_Magician6380]
+
+Developers:
+[@shijisan] [@feyli] [@Hamzaless]
+
 
 ## Getting Started
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 First, run the development server:
 
@@ -25,22 +52,3 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-
-## Road Map
-
-- UI selection
-- Auth, Middleware
-- Base Features  
-    - Age Gate to protect minors 
-    - Friend/Date Search Mode    
-    - Interest based matching    
-    - E2E encrypted messaging    
-    - Verify User - tries to enforce "moderation"    
-    - Expiring Images    
-
-
-## Features that need funding
-
-- Larger Database and Data buckets   
-- Sanity potion for developers, jk   
