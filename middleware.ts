@@ -12,24 +12,13 @@ export async function middleware(req: NextRequest) {
   // Protect routes under /account
   if (pathname.startsWith("/account")) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    console.log(token);
 
     // Redirect to login if token is missing or invalid
     if (!token || typeof token !== "object") {
       const url = req.nextUrl.clone();
       url.pathname = "/auth/login";
       url.search = `redirect=${encodeURIComponent(pathname)}`;
-      return NextResponse.redirect(url);
-    }
-
-    // Check for missing preference fields
-    const requiredPreferenceFields = ["femboy", "sexualOrientation"];
-    const missingFields = requiredPreferenceFields.filter(
-      (field) => !(field in token) || token[field] === null || token[field] === ""
-    );
-
-    if (missingFields.length > 0) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/account/setup";
       return NextResponse.redirect(url);
     }
   }
