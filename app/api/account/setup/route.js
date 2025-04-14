@@ -13,7 +13,7 @@ export async function PUT(req) {
         }
 
         // Extract user ID from the session
-        const userId = session.user.id;
+        const userId = Number(session.user.id);
 
         // Parse the request body
         const { bio, avatarUrl, hobbies, mode, femboy, sexualOrientation, dateEnabled } =
