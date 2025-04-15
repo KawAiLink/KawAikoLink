@@ -1,4 +1,4 @@
-// app/api/user/update/route.js
+// app/api/account/setup/route.js
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route"; // Import your authOptions
 import prisma from "@/lib/prisma";
@@ -16,8 +16,7 @@ export async function PUT(req) {
         const userId = Number(session.user.id);
 
         // Parse the request body
-        const { bio, avatarUrl, hobbies, mode, femboy, sexualOrientation, dateEnabled } =
-            await req.json();
+        const { bio, avatarUrl, hobbies, femboy, sexualOrientation, dateEnabled } = await req.json();
 
         // Update the user's data in the database
         const updatedUser = await prisma.user.update({
@@ -26,16 +25,16 @@ export async function PUT(req) {
                 bio,
                 avatarUrl,
                 hobbies,
-                dateEnabled, // Add dateEnabled to the update
+                dateEnabled,
                 preferences: {
                     upsert: {
-                        create: { mode, femboy, sexualOrientation },
-                        update: { mode, femboy, sexualOrientation },
+                        create: { femboy, sexualOrientation },
+                        update: { femboy, sexualOrientation },
                     },
                 },
             },
             include: {
-                preferences: true, // Include preferences in the response
+                preferences: true,
             },
         });
 
@@ -43,21 +42,7 @@ export async function PUT(req) {
         return Response.json(
             {
                 message: "Preferences updated successfully",
-                user: {
-                    id: updatedUser.id,
-                    email: updatedUser.email,
-                    username: updatedUser.username,
-                    mobileNumber: updatedUser.mobileNumber,
-                    country: updatedUser.country,
-                    dateOfBirth: updatedUser.dateOfBirth,
-                    bio: updatedUser.bio,
-                    avatarUrl: updatedUser.avatarUrl,
-                    hobbies: updatedUser.hobbies,
-                    dateEnabled: updatedUser.dateEnabled,
-                    mode: updatedUser.preferences.mode,
-                    femboy: updatedUser.preferences.femboy,
-                    sexualOrientation: updatedUser.preferences.sexualOrientation,
-                },
+                user: updatedUser,
             },
             { status: 200 }
         );

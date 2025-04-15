@@ -16,7 +16,7 @@ declare module "next-auth" {
     mobileNumber?: string | null;
     country?: string;
     dateOfBirth?: Date;
-    age?: Number;
+    age?: number;
     bio?: string | null;
     avatarUrl?: string | null;
     hobbies?: string[];
@@ -83,7 +83,6 @@ export const authOptions: AuthOptions = {
           throw new Error("Invalid password");
         }
 
-        // Return user with converted ID to string to be compatible with NextAuth
         return {
           id: String(user.id),
           email: user.email,
@@ -95,7 +94,6 @@ export const authOptions: AuthOptions = {
           bio: user.bio,
           avatarUrl: user.avatarUrl,
           hobbies: user.hobbies,
-          // Use as any to avoid enum type conflicts between Prisma and your custom enums
           femboy: user.preferences?.femboy as any,
           sexualOrientation: user.preferences?.sexualOrientation as any,
           dateEnabled: user.dateEnabled,
@@ -105,7 +103,7 @@ export const authOptions: AuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
@@ -122,6 +120,18 @@ export const authOptions: AuthOptions = {
         token.dateEnabled = user.dateEnabled;
         token.preferences = user.preferences;
       }
+    
+      if (trigger === "update" && session) {
+        // Update fields that changed
+        token.username = session.user.username ?? token.username;
+        token.bio = session.user.bio ?? token.bio;
+        token.avatarUrl = session.user.avatarUrl ?? token.avatarUrl;
+        token.hobbies = session.user.hobbies ?? token.hobbies;
+        token.dateEnabled = session.user.dateEnabled !== undefined ? session.user.dateEnabled : token.dateEnabled;
+        token.preferences = session.user.preferences ?? token.preferences;
+        // Add any other fields that might be updated
+      }
+    
       return token;
     },
     async session({ session, token }) {
@@ -154,6 +164,7 @@ export const authOptions: AuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
+
 
 const handler = NextAuth(authOptions);
 
