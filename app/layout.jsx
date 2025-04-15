@@ -1,6 +1,9 @@
+// RootLayout - app/layout.tsx
 import { Roboto_Flex, Poppins } from "next/font/google";
+import { getServerSession } from "next-auth";
 import "./globals.css";
-import SessionWrapper from "@/components/SessionWrapper"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // Adjust path to your auth config
+import SessionWrapper from "@/components/SessionWrapper";
 
 const robotoFlex = Roboto_Flex({
 	subsets: ["latin"],
@@ -17,17 +20,16 @@ export const metadata = {
 	description: "thanks r/feminineboys",
 };
 
-export default function RootLayout({ children }) {
-	return (
-		<html lang="en">
-			<body
-				className={`${robotoFlex.className} antialiased`}
-			>
-				<SessionWrapper>
-					{children}
+export default async function RootLayout({ children }) {
+  const session = await getServerSession(authOptions); // Fetch session on server side
 
-				</SessionWrapper>
-			</body>
-		</html>
-	);
+  return (
+    <html lang="en">
+      <body className={`${robotoFlex.className} antialiased`}>
+        <SessionWrapper session={session}>
+          {children}
+        </SessionWrapper>
+      </body>
+    </html>
+  );
 }

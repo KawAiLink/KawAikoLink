@@ -5,55 +5,70 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function Setup() {
-    const { data: session, update } = useSession();
+    const { data: session, update } = useSession(); 
     const router = useRouter();
 
-    // Initialize state with existing user data or defaults
     const [formData, setFormData] = useState({
         bio: session?.user?.bio || "",
         avatarUrl: session?.user?.avatarUrl || "",
         hobbies: session?.user?.hobbies?.join(", ") || "",
         femboy: session?.user?.femboy || "IS_ONE",
         sexualOrientation: session?.user?.sexualOrientation || "",
+        dateEnabled: session?.user?.dateEnabled || false,
     });
 
-    // Handle input changes
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({ 
+            ...prev, 
+            [name]: type === 'checkbox' ? checked : value 
+        }));
     };
 
-    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            // Prepare the updated data
+
             const updatedData = {
                 ...formData,
                 hobbies: formData.hobbies.split(",").map((hobby) => hobby.trim()),
             };
 
-            // Send the updated data to the backend API
-            const res = await fetch("/api/account/setup", {
+            const response = await fetch("/api/account/setup", {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify(updatedData),
             });
 
-            // Check if the API call was successful
-            if (!res.ok) {
-                throw new Error("Failed to update preferences.");
+            const result = await response.json();
+
+            if (response.ok) {
+                // Update the session with the new data before redirecting
+                await update({
+                    ...session,
+                    user: {
+                        ...session?.user,
+                        bio: updatedData.bio,
+                        avatarUrl: updatedData.avatarUrl,
+                        hobbies: updatedData.hobbies,
+                        femboy: updatedData.femboy,
+                        sexualOrientation: updatedData.sexualOrientation,
+                        dateEnabled: updatedData.dateEnabled,
+                        preferences: {
+                            ...session?.user?.preferences,
+                            femboy: updatedData.femboy,
+                            sexualOrientation: updatedData.sexualOrientation
+                        }
+                    }
+                });
+                
+                router.push("/account");
+            } else {
+                alert(result.message || "An error occurred while saving your preferences.");
             }
-
-            // Parse the response
-            const data = await res.json();
-
-            // Update the session with the new data from the API response
-            await update(data.user);
-
-            // Redirect to the account page
-            router.push("/account");
         } catch (err) {
             console.error(err);
             alert("An error occurred while saving your preferences.");
@@ -122,9 +137,22 @@ export default function Setup() {
                     </select>
                 </div>
 
+                {/* Date Enabled */}
+                <div>
+                    <label>Date Mode Enabled</label>
+                    <input
+                        type="checkbox"
+                        name="dateEnabled"
+                        checked={formData.dateEnabled}
+                        onChange={handleChange}
+                    />
+                </div>
+
                 {/* Submit Button */}
                 <button type="submit">Save Preferences</button>
-                <button type="button" onClick={() => signOut({ callbackUrl: "/auth/login" })} >Logout</button>
+                <button type="button" onClick={() => signOut({ callbackUrl: "/auth/login" })}>
+                    Logout
+                </button>
             </form>
         </main>
     );
